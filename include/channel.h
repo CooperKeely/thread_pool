@@ -5,14 +5,14 @@
 #include <errno.h>
 #include "queue.h"
 
-typedef struct chan_t {
+typedef struct channel_t {
 	queue_t* queue;
-	
-} chan_t;
+	pthread_mutex_t* mutex;	
+} channel_t;
 
-chan_t* channel_init(uint32_t capacity);
-void channel_dispose(chan_t* channel);
-int channel_send(chan_t* channel, void* data);
-int channel_recv(chan_t* channel, void** data);
+channel_t* channel_init(uint32_t capacity);
+void channel_dispose(channel_t* channel);
+int channel_send(channel_t* channel, void* data);
+int channel_recv(channel_t* channel, void** data);
 
 #endif //CHANNEL_H

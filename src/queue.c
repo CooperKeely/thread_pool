@@ -10,8 +10,10 @@ static inline bool queue_at_capacity(queue_t* queue){
 
 queue_t* queue_init(uint32_t capacity){
 	LOG_INF("Creating new queue");	
+
 	queue_t* queue = (queue_t*) malloc(sizeof(queue_t));
 	void** data = (void**) malloc(capacity * sizeof(void*));
+	
 	if(!queue || !data){
 		LOG_ERR("Failed to allocate memory");
 		free(queue);
@@ -54,7 +56,7 @@ void* queue_remove(queue_t* queue){
 	void* value = NULL;
 
 	if(queue->size <= 0){
-		LOG_ERR("Queue size is less than or equal to zero");
+		LOG_ERR("Queue Empty");
 		errno = EINVAL;
 		return value;
 	}
@@ -71,7 +73,7 @@ void* queue_remove(queue_t* queue){
 
 void* queue_peek(queue_t* queue){
 	if(queue->size <= 0){
-		LOG_ERR("Queue size is less than or equal to zero");
+		LOG_ERR("Queue empty");
 		errno = EINVAL;
 		return NULL;
 	}

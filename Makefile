@@ -24,7 +24,7 @@ $(EXE) : $(OBJ) | build
 	$(CC) -o $@ $^ $(LIBS)
 
 build/%.o : src/%.c | build
-	$(CC) $(CFLAG) -MMD -MP -c -o $@ $<
+	$(CC) $(CFLAG) -c -o $@ $<
 
 build:
 	mkdir -p build
