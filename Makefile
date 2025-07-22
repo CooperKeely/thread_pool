@@ -22,9 +22,6 @@ gdb: debug
 remake : clean debug
 .NOTPARALLEL : remake
 
-gdb: debug
-	gdb $(EXE)
-
 run: debug
 	./$(EXE)
 
