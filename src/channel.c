@@ -112,7 +112,7 @@ void channel_dispose(channel_t* channel){
 		errno = EINVAL;
 		LOG_ERR("Channel queue is a null pointer");
 	}else{
-		free(channel->queue);
+		queue_dispose(channel->queue);
 		channel->queue = NULL;
 	}
 

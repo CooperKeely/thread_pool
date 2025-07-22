@@ -17,9 +17,13 @@ void *worker(void* args){
 		LOG_WRN("Failed to recieve data");
 		return NULL;
 	}
+	if(data == NULL){
+		LOG_WRN("Recieved null data");
+		return NULL;
+	}
 	int* value = (int*) data;
 	LOG_INF("Recieved: %d", *value);
-	free(value);
+	free(data);
 	return NULL;
 
 }
@@ -47,6 +51,7 @@ int main() {
 		if(ret < 0){
 			LOG_WRN("Failed to send data over channel");
 		}
+		free(test);
 	}	
 
 	LOG_DBG("Data sent waiting on threads");
@@ -55,7 +60,7 @@ int main() {
 		pthread_join(threads[i], NULL);
 	}
 
-
+	LOG_DBG("Threads have been joined destorying channel");
 	channel_dispose(chan);
 
 	
