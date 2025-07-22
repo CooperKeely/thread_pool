@@ -134,6 +134,8 @@ void channel_dispose(channel_t* channel){
 	channel = NULL;
 }
 
+// TODO:: make send and recv async with a pthread flag to notify the reciving end of the channel 
+
 int channel_send(channel_t* channel, void* data){
 	int ret = safe_channel_check(channel);
 	if(ret != 0) return -1;
@@ -154,7 +156,7 @@ int channel_recv(channel_t* channel, void** data){
 	if(ret != 0) return -1;
 
 	safe_mutex_lock(channel->mutex);
-	while(queue_peek(channel->queue) != NULL){
+	while (queue_peek(channel->queue) != NULL){
 		data = queue_remove(channel->queue);
 	}
 	safe_mutex_unlock(channel->mutex);
