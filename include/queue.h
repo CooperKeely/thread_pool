@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <errno.h>
+#include <assert.h>
 
 typedef struct queue_t{
 	uint32_t size;

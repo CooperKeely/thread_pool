@@ -12,15 +12,10 @@ queue_t* queue_init(uint32_t capacity){
 	LOG_INF("Creating new queue");	
 
 	queue_t* queue = (queue_t*) malloc(sizeof(queue_t));
+	assert(queue && "Failed to allocate memory for queue");
+
 	void** data = (void**) malloc(capacity * sizeof(void*));
-	
-	if(!queue || !data){
-		LOG_ERR("Failed to allocate memory");
-		free(queue);
-		free(data);
-		errno = ENOMEM;
-		return NULL;
-	}
+	assert(data && "Failed to allocate memory for data");	
 
 	queue->capacity = capacity;
 	queue->size = 0;
@@ -36,6 +31,7 @@ void queue_dispose(queue_t* queue){
 }
 
 int queue_add(queue_t* queue, void* value){
+	assert(queue && "Null input");
 	if(queue_at_capacity(queue)){
 		LOG_DBG("Queue at capacity couldn't add: %p", value);
 		errno = ENOBUFS;
@@ -53,6 +49,7 @@ int queue_add(queue_t* queue, void* value){
 }
 
 void* queue_remove(queue_t* queue){
+	assert(queue && "Null input");
 	void* value = NULL;
 
 	if(queue->size <= 0){
@@ -72,9 +69,8 @@ void* queue_remove(queue_t* queue){
 }
 
 void* queue_peek(queue_t* queue){
+	assert(queue && "Null input");
 	if(queue->size <= 0){
-		LOG_ERR("Queue empty");
-		errno = EINVAL;
 		return NULL;
 	}
 	return queue->data[queue->next];

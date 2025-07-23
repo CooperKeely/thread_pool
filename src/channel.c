@@ -1,3 +1,4 @@
+#include <pthread.h>
 #define LOG_LEVEL 3
 #define LOG_MODULE_NAME "CHANNEL"
 #include "../include/log.h"
@@ -47,24 +48,6 @@ static void safe_mutex_unlock(pthread_mutex_t* mutex){
 	exit(EXIT_FAILURE);
 }
 
-static int safe_channel_check(channel_t* channel){
-	if(channel == NULL){
-		errno = EINVAL;
-		LOG_ERR("Channel is a null pointer");
-		return -1;
-	}
-	if(channel->queue == NULL){
-		errno = EINVAL;
-		LOG_ERR("Channel queue is a null pointer");
-		return -1;
-	}
-	if(channel->mutex == NULL){
-		errno = EINVAL;
-		LOG_ERR("Channel mutex is a null pointer");
-		return -1;
-	}
-	return 0;
-}
 
 // Public API
 
@@ -73,62 +56,40 @@ channel_t* channel_init(uint32_t capacity){
 	
 	// create queue
 	queue_t* queue = queue_init(capacity); 
-	if(queue == NULL){
-		if(errno == ENOMEM) LOG_ERR("Couldn't allocate memory for queue");
-		else LOG_ERR("An unknown fault occured");
-		return NULL;
-	}
-	
+	assert(queue && "Memory allocation failed for queue");
+
 	// create mutex
 	pthread_mutex_t* mutex = malloc(sizeof(pthread_mutex_t));
 	int ret = pthread_mutex_init(mutex, NULL);
-	if(ret < 0){
-		if(ret == ENOMEM) LOG_ERR("Couldn't allocate memory for mutex");
-		else if(ret == EBUSY) LOG_ERR("Initialiation of an initialized mutex occured");
-		else LOG_ERR("An unknown error occured");
-		return NULL;
-	}
+	assert((ret >= 0) && "Failed to initialize mutex");
+	
+	// create condition
+	pthread_cond_t* cond = malloc(sizeof(pthread_cond_t));
+	ret = pthread_cond_init(cond, NULL); 
+	assert((ret >= 0) && "Failed to initialize condition");
 
 	channel_t* chan = (channel_t*) malloc(sizeof(channel_t));
-	if(chan == NULL){
-		LOG_ERR("Couldn't allocate memory for channel");
-		errno = ENOMEM;
-		return NULL;
-	}
+	assert(chan && "Memory allcation for channel failed");
 
 	chan->queue = queue;
 	chan->mutex = mutex;
+	chan->flag = cond;
 	return chan;
 }
 
 void channel_dispose(channel_t* channel){
-	if(channel == NULL){
-		errno = EINVAL;
-		LOG_ERR("Channel is a null pointer");
-		return;
-	}
+	queue_dispose(channel->queue);
+	channel->queue = NULL;
 
-	if(channel->queue == NULL){
-		errno = EINVAL;
-		LOG_ERR("Channel queue is a null pointer");
-	}else{
-		queue_dispose(channel->queue);
-		channel->queue = NULL;
-	}
+	int ret = pthread_mutex_destroy(channel->mutex);
+	assert((ret >= 0) && "Failed to destory mutex");
+	free(channel->mutex);
+	channel->mutex = NULL;
 
-	if(channel->mutex == NULL){
-		errno = EINVAL;
-		LOG_ERR("Channel mutex is a null pointer");
-	}else{
-		int ret = pthread_mutex_destroy(channel->mutex);
-		if (ret < 0){
-			if(ret == EBUSY) LOG_ERR("Attempt to destory mutex with an active reference");
-			else if (ret == EINVAL) LOG_ERR("Invalid mutex");
-			else LOG_ERR("An unknown error occured");
-		}
-		free(channel->mutex);
-		channel->mutex = NULL;
-	}
+	ret = pthread_cond_destroy(channel->flag);
+	assert((ret >= 0) && "Failed to destroy flag");
+	free(channel->flag);
+	channel->flag = NULL;
 
 	free(channel);
 	channel = NULL;
@@ -137,31 +98,38 @@ void channel_dispose(channel_t* channel){
 // TODO:: make send and recv async with a pthread flag to notify the reciving end of the channel 
 
 int channel_send(channel_t* channel, void* data){
-	int ret = safe_channel_check(channel);
-	if(ret != 0) return -1;
+	assert((channel && channel->queue && channel->mutex && channel->flag && data) && "Null input");
 
 	safe_mutex_lock(channel->mutex);
-	ret = queue_add(channel->queue, data);
+
+	int ret = queue_add(channel->queue, data);
+	if (ret >= 0) {
+		pthread_cond_signal(channel->flag);
+	}
+
 	safe_mutex_unlock(channel->mutex);
 
 	if (ret < 0){
 		if(errno == ENOBUFS) LOG_WRN("Channel is full");
 		return -1;
 	}
+
 	return 1;	
 }
 
 int channel_recv(channel_t* channel, void** data){
-	int ret = safe_channel_check(channel);
-	if(ret != 0) return -1;
+	assert((channel && channel->queue && channel->mutex && channel->flag) && "Null input");
 
-	safe_mutex_lock(channel->mutex);
-	while (queue_peek(channel->queue) != NULL){
-		data = queue_remove(channel->queue);
+	pthread_mutex_lock(channel->mutex);
+
+	while(queue_peek(channel->queue) == NULL){
+		pthread_cond_wait(channel->flag, channel->mutex);	
 	}
-	safe_mutex_unlock(channel->mutex);
+	*data = queue_remove(channel->queue);
+	
+	pthread_mutex_unlock(channel->mutex);
 
-	if(data == NULL){
+	if(*data == NULL){
 		if (errno == EINVAL) LOG_ERR("Queue size error");	
 		else LOG_ERR("An unknown error occured");
 		return -1;

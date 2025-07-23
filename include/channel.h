@@ -8,6 +8,7 @@
 typedef struct channel_t {
 	queue_t* queue;
 	pthread_mutex_t* mutex;	
+	pthread_cond_t* flag;
 } channel_t;
 
 channel_t* channel_init(uint32_t capacity);
