@@ -20,7 +20,7 @@ debug: LDFLAGS += $(ASAN_FLAGS)
 debug: clean build $(EXE)
 
 gdb: debug
-	gdb $(EXE)
+	gdb --tui $(EXE)
 
 remake : clean debug
 .NOTPARALLEL : remake

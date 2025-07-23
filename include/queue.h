@@ -3,9 +3,10 @@
 
 #include <stdlib.h>
 #include <stdint.h>
-#include <stdbool.h>
 #include <errno.h>
-#include <assert.h>
+#include <stdbool.h>
+#include "arena.h"
+
 
 typedef struct queue_t{
 	uint32_t size;
@@ -14,8 +15,7 @@ typedef struct queue_t{
 	void** data;	
 } queue_t;
 
-queue_t* queue_init(uint32_t capacity);
-void queue_dispose(queue_t* queue);
+queue_t* queue_init(arena_t* arena, uint32_t capacity);
 int queue_add(queue_t* queue, void* data);
 void* queue_remove(queue_t* queue);
 void* queue_peek(queue_t* queue);

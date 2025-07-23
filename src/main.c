@@ -6,8 +6,9 @@
 #include <pthread.h>
 
 #include "../include/channel.h"
+#include "../include/arena.h"
 
-#define THREADS 4
+#define THREADS 1 
 
 void *worker(void* args){
 	channel_t* chan = (channel_t *) args;
@@ -37,11 +38,13 @@ void *worker(void* args){
 
 
 int main() {
-	channel_t* chan = channel_init(100);
+	size_t arena_size = 1000;
+	arena_t* arena = arena_init(arena_size);
+	channel_t* chan = channel_init(arena, 100);
 
 	LOG_DBG("Channel has been created, dispatching threads");
 
-	for(int i = 0; i < 80; i ++){
+	for(int i = 0; i < 98; i ++){
 		int* test = malloc(sizeof(int));
 		*test = i;
 		int ret = channel_send(chan, (void *) test);
@@ -73,9 +76,9 @@ int main() {
 	}
 
 	LOG_DBG("Threads have been joined destorying channel");
-	channel_dispose(chan);
 
-	
+	channel_cleanup(chan);
+	arena_deinit(arena);	
 	return 0;
 }
 

@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <assert.h>
+#include <stdbool.h>
 
 // default arena size is much larger then needed
 // to avoid needing to resize the arena
@@ -15,11 +16,11 @@ typedef struct {
 	size_t capacity;
 } arena_t;
 
-arena_t* arena_allocate(arena_t* arena, size_t size);
-void arena_deallocate(arena_t* arena); 
+arena_t* arena_init(size_t size);
+void arena_deinit(arena_t* arena); 
 
-void* arena_push(arena_t* arena, size_t size);
-void* arena_pop(arena_t* arena, size_t size);
+void* arena_allocate(arena_t* arena, size_t size);
+void* arena_deallocate(arena_t* arena, size_t size);
 size_t arena_get_pos(arena_t* arena);
 
 #endif // ARENA_H

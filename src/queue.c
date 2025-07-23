@@ -5,29 +5,22 @@
 #include "../include/queue.h"
 
 static inline bool queue_at_capacity(queue_t* queue){
-	return queue->size >= queue->capacity;
+	return queue->capacity <= queue->size;
 }
 
-queue_t* queue_init(uint32_t capacity){
+queue_t* queue_init(arena_t* arena, uint32_t capacity){
 	LOG_INF("Creating new queue");	
 
-	queue_t* queue = (queue_t*) malloc(sizeof(queue_t));
+	queue_t* queue = (queue_t*) arena_allocate(arena, sizeof(queue_t));
 	assert(queue && "Failed to allocate memory for queue");
 
-	void** data = (void**) malloc(capacity * sizeof(void*));
-	assert(data && "Failed to allocate memory for data");	
+	queue->data = (void**) arena_allocate(arena, capacity * sizeof(void*));
+	assert(queue->data && "Failed to allocate memory for data");	
 
 	queue->capacity = capacity;
 	queue->size = 0;
 	queue->next = 0;
-	queue->data = data;
 	return queue;
-}
-
-void queue_dispose(queue_t* queue){
-	LOG_INF("Deleting queue");
-	free(queue->data);
-	free(queue);
 }
 
 int queue_add(queue_t* queue, void* value){
@@ -50,15 +43,14 @@ int queue_add(queue_t* queue, void* value){
 
 void* queue_remove(queue_t* queue){
 	assert(queue && "Null input");
-	void* value = NULL;
 
-	if(queue->size <= 0){
+	if(queue->size == 0){
 		LOG_ERR("Queue Empty");
 		errno = EINVAL;
-		return value;
+		return NULL;
 	}
 
-	value = queue->data[queue->next];
+	void* value = queue->data[queue->next];
 	queue->size--;
 	queue->next++;
 	if(queue->next>= queue->capacity){
@@ -75,4 +67,5 @@ void* queue_peek(queue_t* queue){
 	}
 	return queue->data[queue->next];
 }
+
 

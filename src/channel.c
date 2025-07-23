@@ -51,63 +51,49 @@ static void safe_mutex_unlock(pthread_mutex_t* mutex){
 
 // Public API
 
-channel_t* channel_init(uint32_t capacity){
+channel_t* channel_init(arena_t* arena, uint32_t capacity){
 	LOG_INF("Creating new channel");
-	
+	channel_t* chan =  arena_allocate(arena, sizeof(channel_t));
+	assert(chan && "Failed to allocate memory for channel");
+
 	// create queue
-	queue_t* queue = queue_init(capacity); 
-	assert(queue && "Memory allocation failed for queue");
+	chan->queue = queue_init(arena, capacity); 
+	assert(chan->queue && "Memory allocation failed for queue");
 
 	// create mutex
-	pthread_mutex_t* mutex = malloc(sizeof(pthread_mutex_t));
-	int ret = pthread_mutex_init(mutex, NULL);
+	int ret = pthread_mutex_init(&chan->mutex, NULL);
 	assert((ret >= 0) && "Failed to initialize mutex");
 	
 	// create condition
-	pthread_cond_t* cond = malloc(sizeof(pthread_cond_t));
-	ret = pthread_cond_init(cond, NULL); 
+	ret = pthread_cond_init(&chan->flag, NULL); 
 	assert((ret >= 0) && "Failed to initialize condition");
 
-	channel_t* chan = (channel_t*) malloc(sizeof(channel_t));
-	assert(chan && "Memory allcation for channel failed");
-
-	chan->queue = queue;
-	chan->mutex = mutex;
-	chan->flag = cond;
 	return chan;
 }
 
-void channel_dispose(channel_t* channel){
-	queue_dispose(channel->queue);
-	channel->queue = NULL;
+void channel_cleanup(channel_t* channel){
+	assert(channel && "Null input");
 
-	int ret = pthread_mutex_destroy(channel->mutex);
+	int ret = pthread_mutex_destroy(&channel->mutex);
 	assert((ret >= 0) && "Failed to destory mutex");
-	free(channel->mutex);
-	channel->mutex = NULL;
 
-	ret = pthread_cond_destroy(channel->flag);
+	ret = pthread_cond_destroy(&channel->flag);
 	assert((ret >= 0) && "Failed to destroy flag");
-	free(channel->flag);
-	channel->flag = NULL;
-
-	free(channel);
-	channel = NULL;
 }
 
 // TODO:: make send and recv async with a pthread flag to notify the reciving end of the channel 
 
 int channel_send(channel_t* channel, void* data){
-	assert((channel && channel->queue && channel->mutex && channel->flag && data) && "Null input");
+	assert((channel && channel->queue && data) && "Null input");
 
-	safe_mutex_lock(channel->mutex);
+	safe_mutex_lock(&channel->mutex);
 
 	int ret = queue_add(channel->queue, data);
 	if (ret >= 0) {
-		pthread_cond_signal(channel->flag);
+		pthread_cond_signal(&channel->flag);
 	}
 
-	safe_mutex_unlock(channel->mutex);
+	safe_mutex_unlock(&channel->mutex);
 
 	if (ret < 0){
 		if(errno == ENOBUFS) LOG_WRN("Channel is full");
@@ -118,16 +104,16 @@ int channel_send(channel_t* channel, void* data){
 }
 
 int channel_recv(channel_t* channel, void** data){
-	assert((channel && channel->queue && channel->mutex && channel->flag) && "Null input");
+	assert((channel && channel->queue) && "Null input");
 
-	pthread_mutex_lock(channel->mutex);
+	pthread_mutex_lock(&channel->mutex);
 
 	while(queue_peek(channel->queue) == NULL){
-		pthread_cond_wait(channel->flag, channel->mutex);	
+		pthread_cond_wait(&channel->flag, &channel->mutex);	
 	}
 	*data = queue_remove(channel->queue);
 	
-	pthread_mutex_unlock(channel->mutex);
+	pthread_mutex_unlock(&channel->mutex);
 
 	if(*data == NULL){
 		if (errno == EINVAL) LOG_ERR("Queue size error");	
