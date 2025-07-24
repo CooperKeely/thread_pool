@@ -10,7 +10,8 @@
 typedef struct channel_t {
 	queue_t* queue;
 	pthread_mutex_t mutex;	
-	pthread_cond_t flag;
+	pthread_cond_t send_ready;
+	pthread_cond_t recv_ready;
 } channel_t;
 
 channel_t* channel_init(arena_t* arena, uint32_t capacity);

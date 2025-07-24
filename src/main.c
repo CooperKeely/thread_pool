@@ -8,7 +8,7 @@
 #include "../include/channel.h"
 #include "../include/arena.h"
 
-#define THREADS 1 
+#define THREADS 100
 
 void *worker(void* args){
 	channel_t* chan = (channel_t *) args;
@@ -28,6 +28,7 @@ void *worker(void* args){
 		int* value = (int*) data;
 		if(*value < 0){
 			LOG_INF("Termination message recieved");
+			free(value);
 			return NULL;
 		}
 		LOG_INF("Recieved: %d", *value);
@@ -40,34 +41,30 @@ void *worker(void* args){
 int main() {
 	size_t arena_size = 1000;
 	arena_t* arena = arena_init(arena_size);
-	channel_t* chan = channel_init(arena, 100);
+	channel_t* chan = channel_init(arena, 500);
 
 	LOG_DBG("Channel has been created, dispatching threads");
-
-	for(int i = 0; i < 98; i ++){
-		int* test = malloc(sizeof(int));
-		*test = i;
-		int ret = channel_send(chan, (void *) test);
-		if(ret < 0){
-			LOG_WRN("Failed to send data over channel");
-		}
-	}	
-
 	// Launch threads
 	pthread_t threads[THREADS];
 	for (int i = 0; i < THREADS; ++i) {
 		pthread_create(&threads[i], NULL, worker, chan);
 	}
 	
-	LOG_DBG("Data sent waiting on threads");
 
-	for(int i = -4; i < 0; i ++){
+	LOG_DBG("Sending data down channel");
+	for(int i = 0; i < 100000; i ++){
 		int* test = malloc(sizeof(int));
 		*test = i;
-		int ret = channel_send(chan, (void *) test);
-		if(ret < 0){
-			LOG_WRN("Failed to send data over channel");
-		}
+		channel_send(chan, (void *) test);
+
+	}	
+
+
+	LOG_DBG("Data sending termination code");
+	for(int i = -THREADS; i < 0; i ++){
+		int* test = malloc(sizeof(int));
+		*test = i;
+		channel_send(chan, (void *) test);
 	}
 
 	// Wait for all threads to complete

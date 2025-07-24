@@ -8,7 +8,7 @@ arena_t* arena_init(size_t size){
 
 	arena->mem_ptr = malloc(arena->capacity);
 	assert(arena->mem_ptr != NULL);
-
+	
 	arena->next_free = 0;
 	return arena;
 }
@@ -25,6 +25,7 @@ void* arena_allocate(arena_t* arena, size_t size){
 	if (arena_get_pos(arena) + size <= arena->capacity){
 		void* ptr = arena->mem_ptr + arena->next_free;
 		arena->next_free += size;
+		memset(ptr, 0, size);
 		return ptr;
 	}	
 	assert(false && "Arena Full");

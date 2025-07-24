@@ -4,11 +4,11 @@
 
 #include "../include/queue.h"
 
-static inline bool queue_at_capacity(queue_t* queue){
-	return queue->capacity <= queue->size;
+bool queue_at_capacity(queue_t* queue){
+	return queue->size >= queue->capacity;
 }
 
-queue_t* queue_init(arena_t* arena, uint32_t capacity){
+queue_t* queue_init(arena_t* arena, size_t capacity){
 	LOG_INF("Creating new queue");	
 
 	queue_t* queue = (queue_t*) arena_allocate(arena, sizeof(queue_t));
@@ -24,7 +24,7 @@ queue_t* queue_init(arena_t* arena, uint32_t capacity){
 }
 
 int queue_add(queue_t* queue, void* value){
-	assert(queue && "Null input");
+	assert((queue && value) && "Null input");
 	if(queue_at_capacity(queue)){
 		LOG_DBG("Queue at capacity couldn't add: %p", value);
 		errno = ENOBUFS;
@@ -54,8 +54,9 @@ void* queue_remove(queue_t* queue){
 	queue->size--;
 	queue->next++;
 	if(queue->next>= queue->capacity){
-		queue->next-= queue->capacity;	
+		queue->next -= queue->capacity;	
 	}
+	
 	return value;
 
 }

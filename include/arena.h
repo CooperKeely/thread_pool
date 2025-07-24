@@ -5,10 +5,11 @@
 #include <errno.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <string.h>
 
 // default arena size is much larger then needed
 // to avoid needing to resize the arena
-#define DEFAULT_ARENA_SIZE 8096
+#define DEFAULT_ARENA_SIZE 64 * 1024 
 
 typedef struct {
 	void* mem_ptr;
