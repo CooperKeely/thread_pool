@@ -13,13 +13,13 @@
 #endif
 
 
-// ANSI color codes
+/* ANSI color codes */
 #define COLOR_RESET 	"\033[0m"
 #define COLOR_RED 	"\033[31m"
 #define COLOR_YELLOW 	"\033[33m"
 #define COLOR_CYAN 	"\033[36m"
 
-static inline const char* log_get_timestamp(){
+static const char* log_get_timestamp(){
 	static char buf[20];
 	time_t now = time(NULL);
 	struct tm* tm_info = localtime(&now);
@@ -27,7 +27,7 @@ static inline const char* log_get_timestamp(){
 	return buf;
 }
 
-// Core log Macro
+/* Core log Macro */
 #define LOG_PRINT(level_str, color, fmt, ...) \
 	fprintf(stderr, color "[%s] %s [%s:%d (%s)] " fmt COLOR_RESET "\n", \
 		level_str, log_get_timestamp(), __FILE__, __LINE__, LOG_MODULE_NAME, ##__VA_ARGS__)
@@ -56,6 +56,6 @@ static inline const char* log_get_timestamp(){
 #define LOG_ERR(fmt, ...)
 #endif
 
-#endif // LOG_H
+#endif /* LOG_H */
 
 

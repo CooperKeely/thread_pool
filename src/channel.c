@@ -12,11 +12,11 @@ channel_t* channel_init(arena_t* arena, uint32_t capacity){
 	channel_t* chan =  arena_allocate(arena, sizeof(channel_t));
 	assert(chan && "Failed to allocate memory for channel");
 
-	// create queue
+	/* create queue */
 	chan->queue = queue_init(arena, capacity); 
 	assert(chan->queue && "Memory allocation failed for queue");
 
-	// create mutex
+	/* create mutex */
 	int ret = pthread_mutex_init(&chan->mutex, NULL);
 	ret = pthread_cond_init(&chan->recv_ready, NULL); 
 	ret = pthread_cond_init(&chan->send_ready, NULL); 
@@ -38,7 +38,7 @@ void channel_cleanup(channel_t* channel){
 int channel_send(channel_t* channel, void* data){
 	assert((channel && channel->queue && data) && "Null input");
 	
-	// aquire lock
+	/* aquire lock */
 	int ret = pthread_mutex_lock(&channel->mutex);
 	assert((ret == 0) && "Mutex lock failed");
 

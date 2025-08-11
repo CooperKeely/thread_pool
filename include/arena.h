@@ -7,8 +7,8 @@
 #include <stdbool.h>
 #include <string.h>
 
-// default arena size is much larger then needed
-// to avoid needing to resize the arena
+/* default arena size is much larger then needed */
+/* to avoid needing to resize the arena */
 #define DEFAULT_ARENA_SIZE 64 * 1024 
 
 typedef struct {
@@ -24,4 +24,4 @@ void* arena_allocate(arena_t* arena, size_t size);
 void* arena_deallocate(arena_t* arena, size_t size);
 size_t arena_get_pos(arena_t* arena);
 
-#endif // ARENA_H
+#endif /*ARENA_H*/

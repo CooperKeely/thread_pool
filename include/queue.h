@@ -21,4 +21,4 @@ void* queue_remove(queue_t* queue);
 void* queue_peek(queue_t* queue);
 bool queue_at_capacity(queue_t* queue);
 bool queue_at_empty(queue_t* queue);
-#endif // QUEUE_H
+#endif /* QUEUE_H */

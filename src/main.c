@@ -42,17 +42,17 @@ int main() {
 	size_t arena_size = 1000;
 	arena_t* arena = arena_init(arena_size);
 	channel_t* chan = channel_init(arena, 500);
-
+	int i = 0;
 	LOG_DBG("Channel has been created, dispatching threads");
-	// Launch threads
+	/* Launch threads */
 	pthread_t threads[THREADS];
-	for (int i = 0; i < THREADS; ++i) {
+	for (i = 0; i < THREADS; ++i) {
 		pthread_create(&threads[i], NULL, worker, chan);
 	}
 	
 
 	LOG_DBG("Sending data down channel");
-	for(int i = 0; i < 100000; i ++){
+	for(i = 0; i < 100000; i ++){
 		int* test = malloc(sizeof(int));
 		*test = i;
 		channel_send(chan, (void *) test);
@@ -61,14 +61,14 @@ int main() {
 
 
 	LOG_DBG("Data sending termination code");
-	for(int i = -THREADS; i < 0; i ++){
+	for(i = -THREADS; i < 0; i ++){
 		int* test = malloc(sizeof(int));
 		*test = i;
 		channel_send(chan, (void *) test);
 	}
 
-	// Wait for all threads to complete
-	for (int i = 0; i < THREADS; ++i) {
+	/* Wait for all threads to complete */
+	for (i = 0; i < THREADS; ++i) {
 		pthread_join(threads[i], NULL);
 	}
 

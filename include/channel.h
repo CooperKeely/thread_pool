@@ -19,4 +19,4 @@ void channel_cleanup(channel_t* channel);
 int channel_send(channel_t* channel, void* data);
 int channel_recv(channel_t* channel, void** data);
 
-#endif //CHANNEL_H
+#endif /*CHANNEL_H*/

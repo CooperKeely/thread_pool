@@ -1,6 +1,6 @@
 
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -std=c11 -Iinclude
+CFLAGS = -Wall -Wextra -Werror -std=c89 -Iinclude
 LDFLAGS =  
 ASAN_FLAGS = -fsanitize=address
 
