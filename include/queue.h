@@ -15,10 +15,10 @@ typedef struct queue_t{
 	void** data;	
 } queue_t;
 
-queue_t* queue_init(arena_t* arena, size_t capacity);
-int queue_add(queue_t* queue, void* data);
-void* queue_remove(queue_t* queue);
-void* queue_peek(queue_t* queue);
-bool queue_at_capacity(queue_t* queue);
-bool queue_at_empty(queue_t* queue);
+queue_t* QueueInit(arena_t* arena, size_t capacity);
+int QueueAdd(queue_t* queue, void* data);
+void* QueueRemove(queue_t* queue);
+void* QueuePeek(queue_t* queue);
+bool QueueAtCapacity(queue_t* queue);
+bool QueueEmpty(queue_t* queue);
 #endif /* QUEUE_H */

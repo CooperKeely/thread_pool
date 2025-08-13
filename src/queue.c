@@ -1,20 +1,19 @@
 #define LOG_LEVEL 3
-#define LOG_MODULE_NAME "QUEUE"
 #include "../include/log.h"
 
 #include "../include/queue.h"
 
-bool queue_at_capacity(queue_t* queue){
+bool QueueAtCapacity(queue_t* queue){
 	return queue->size >= queue->capacity;
 }
 
-queue_t* queue_init(arena_t* arena, size_t capacity){
+queue_t* QueueInit(arena_t* arena, size_t capacity){
 	LOG_INF("Creating new queue");	
 
-	queue_t* queue = (queue_t*) arena_allocate(arena, sizeof(queue_t));
+	queue_t* queue = (queue_t*) ArenaPush(arena, sizeof(queue_t));
 	assert(queue && "Failed to allocate memory for queue");
 
-	queue->data = (void**) arena_allocate(arena, capacity * sizeof(void*));
+	queue->data = (void**)PushArrayZero(arena, void*, capacity);
 	assert(queue->data && "Failed to allocate memory for data");	
 
 	queue->capacity = capacity;
@@ -23,9 +22,9 @@ queue_t* queue_init(arena_t* arena, size_t capacity){
 	return queue;
 }
 
-int queue_add(queue_t* queue, void* value){
+int QueueAdd(queue_t* queue, void* value){
 	assert((queue && value) && "Null input");
-	if(queue_at_capacity(queue)){
+	if(QueueAtCapacity(queue)){
 		LOG_DBG("Queue at capacity couldn't add: %p", value);
 		errno = ENOBUFS;
 		return -1;
@@ -41,7 +40,7 @@ int queue_add(queue_t* queue, void* value){
 	return 0;
 }
 
-void* queue_remove(queue_t* queue){
+void* QueueRemove(queue_t* queue){
 	assert(queue && "Null input");
 
 	if(queue->size == 0){
@@ -61,7 +60,7 @@ void* queue_remove(queue_t* queue){
 
 }
 
-void* queue_peek(queue_t* queue){
+void* QueuePeek(queue_t* queue){
 	assert(queue && "Null input");
 	if(queue->size <= 0){
 		return NULL;

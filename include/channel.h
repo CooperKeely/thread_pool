@@ -14,9 +14,9 @@ typedef struct channel_t {
 	pthread_cond_t recv_ready;
 } channel_t;
 
-channel_t* channel_init(arena_t* arena, uint32_t capacity);
-void channel_cleanup(channel_t* channel);
-int channel_send(channel_t* channel, void* data);
-int channel_recv(channel_t* channel, void** data);
+channel_t* ChannelInit(arena_t* arena, uint32_t capacity);
+void ChannelCleanup(channel_t* channel);
+int ChannelSend(channel_t* channel, void* data);
+int ChannelReceive(channel_t* channel, void** data);
 
 #endif /*CHANNEL_H*/

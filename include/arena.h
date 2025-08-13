@@ -2,7 +2,6 @@
 #define ARENA_H
 
 #include <stdlib.h>
-#include <errno.h>
 #include <assert.h>
 #include <stdbool.h>
 #include <string.h>
@@ -17,11 +16,27 @@ typedef struct {
 	size_t capacity;
 } arena_t;
 
-arena_t* arena_init(size_t size);
-void arena_deinit(arena_t* arena); 
+/* allocate and free arena */
+arena_t* ArenaAlloc(void);
+void ArenaRelease(arena_t* arena); 
 
-void* arena_allocate(arena_t* arena, size_t size);
-void* arena_deallocate(arena_t* arena, size_t size);
-size_t arena_get_pos(arena_t* arena);
+/* allocate memory from the arena */
+void* ArenaPush(arena_t* arena, size_t size);
+void* ArenaPushZero(arena_t* arena, size_t size);
+
+/* helper macros */
+#define PushArray(arena, type, count) (type *)ArenaPush((arena), sizeof(type)*(count))
+#define PushArrayZero(arena, type, count) (type *)ArenaPushZero((arena), sizeof(type)*(count))
+#define PushStruct(arena, type) PushArray((arena), type, (1))
+#define PushStructZero(arena, type) PushArrayZero((arena), type, (1))
+
+/* free memory from the arena */
+void* ArenaPop(arena_t* arena, size_t size);
+void ArenaClear(arena_t* arena);
+
+/* helper functions */
+size_t ArenaGetPos(arena_t* arena);
+void ArenaSetPosBack(arena_t* arena, size_t size);
+
 
 #endif /*ARENA_H*/

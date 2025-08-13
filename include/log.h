@@ -8,11 +8,6 @@
 #define LOG_LEVEL 3
 #endif
 
-#ifndef LOG_MODULE_NAME
-#define LOG_MODULE_NAME __FILE__
-#endif
-
-
 /* ANSI color codes */
 #define COLOR_RESET 	"\033[0m"
 #define COLOR_RED 	"\033[31m"
@@ -29,8 +24,8 @@ static const char* log_get_timestamp(){
 
 /* Core log Macro */
 #define LOG_PRINT(level_str, color, fmt, ...) \
-	fprintf(stderr, color "[%s] %s [%s:%d (%s)] " fmt COLOR_RESET "\n", \
-		level_str, log_get_timestamp(), __FILE__, __LINE__, LOG_MODULE_NAME, ##__VA_ARGS__)
+	fprintf(stderr, color "[%s] %s [%s:%d] " fmt COLOR_RESET "\n", \
+		level_str, log_get_timestamp(), __FILE__, __LINE__, ##__VA_ARGS__)
 
 #if LOG_LEVEL >= 3
 #define LOG_DBG(fmt, ...) LOG_PRINT("DBG", COLOR_CYAN, fmt, ##__VA_ARGS__)

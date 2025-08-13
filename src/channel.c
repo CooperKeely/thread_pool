@@ -1,19 +1,18 @@
 #define LOG_LEVEL 3
-#define LOG_MODULE_NAME "CHANNEL"
 #include "../include/log.h"
 
 #include <pthread.h>
 #include "../include/channel.h"
 
 
-channel_t* channel_init(arena_t* arena, uint32_t capacity){
+channel_t* ChannelInit(arena_t* arena, uint32_t capacity){
 	LOG_INF("Creating new channel");
 
-	channel_t* chan =  arena_allocate(arena, sizeof(channel_t));
+	channel_t* chan =  PushStruct(arena, channel_t);
 	assert(chan && "Failed to allocate memory for channel");
 
 	/* create queue */
-	chan->queue = queue_init(arena, capacity); 
+	chan->queue = QueueInit(arena, capacity); 
 	assert(chan->queue && "Memory allocation failed for queue");
 
 	/* create mutex */
@@ -25,7 +24,7 @@ channel_t* channel_init(arena_t* arena, uint32_t capacity){
 	return chan;
 }
 
-void channel_cleanup(channel_t* channel){
+void ChannelCleanup(channel_t* channel){
 	assert(channel && "Null input");
 
 	int ret = pthread_mutex_destroy(&channel->mutex);
@@ -35,19 +34,19 @@ void channel_cleanup(channel_t* channel){
 }
 
 
-int channel_send(channel_t* channel, void* data){
+int ChannelSend(channel_t* channel, void* data){
 	assert((channel && channel->queue && data) && "Null input");
 	
 	/* aquire lock */
 	int ret = pthread_mutex_lock(&channel->mutex);
 	assert((ret == 0) && "Mutex lock failed");
 
-	while(queue_at_capacity(channel->queue)){
+	while(QueueAtCapacity(channel->queue)){
 		ret = pthread_cond_wait(&channel->send_ready, &channel->mutex);
 		assert((ret == 0) && "Condition wait failed");
 	}
 
-	ret = queue_add(channel->queue, data);
+	ret = QueueAdd(channel->queue, data);
 	assert((ret == 0) && "Failed to add to queue");
 
 	ret = pthread_cond_signal(&channel->recv_ready);
@@ -59,7 +58,7 @@ int channel_send(channel_t* channel, void* data){
 	return 0;	
 }
 
-int channel_recv(channel_t* channel, void** data){
+int ChannelReceive(channel_t* channel, void** data){
 	assert((channel && channel->queue) && "Null input");
 
 	int ret = pthread_mutex_lock(&channel->mutex);
@@ -69,7 +68,7 @@ int channel_recv(channel_t* channel, void** data){
 		ret = pthread_cond_wait(&channel->recv_ready, &channel->mutex);	
 		assert((ret == 0) && "Condition wait failed");
 	}
-	*data = queue_remove(channel->queue);
+	*data = QueueRemove(channel->queue);
 	assert((*data != NULL) && "Null data removed from queue");
 
 	ret = pthread_cond_signal(&channel->send_ready);		
